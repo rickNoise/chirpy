@@ -1,0 +1,16 @@
+# Compiled binaries
+out
+*.exe
+
+# Go-specific
+*.test
+*.prof
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Editor-specific
+.vscode/
+.idea/
+*.swp

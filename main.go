@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"net/http"
+
+	"github.com/rickNoise/chirpy/handlers"
 )
 
 /* CONSTANTS */
@@ -11,7 +13,11 @@ const filepathRoot = "."
 
 func main() {
 	mux := http.NewServeMux()
-	mux.Handle("/", http.FileServer(http.Dir(filepathRoot)))
+	mux.Handle(
+		"/app/",
+		http.StripPrefix("/app/", http.FileServer(http.Dir(filepathRoot))),
+	)
+	mux.HandleFunc("/healthz", handlers.ReadinessHandler)
 
 	srv := &http.Server{
 		Addr:    ":" + port,

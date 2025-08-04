@@ -15,7 +15,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle(
 		"/app/",
-		http.StripPrefix("/app/", http.FileServer(http.Dir(filepathRoot))),
+		http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot))),
 	)
 	mux.HandleFunc("/healthz", handlers.ReadinessHandler)
 

@@ -7,19 +7,21 @@ import (
 )
 
 /* CONSTANTS */
-const SERVER_ADDR = ":8080"
+const port = "8080"
+const filepathRoot = "."
 
 func main() {
-	serveMux := http.NewServeMux()
+	mux := http.NewServeMux()
+	mux.Handle("/", http.FileServer(http.Dir(filepathRoot)))
 
-	s := http.Server{
-		Addr:    SERVER_ADDR,
-		Handler: serveMux,
+	srv := http.Server{
+		Addr:    ":" + port,
+		Handler: mux,
 	}
 	fmt.Printf("created new http.Server\n")
 
-	fmt.Printf("listening on Addr: %v", s.Addr)
-	err := s.ListenAndServe()
+	fmt.Printf("listening on Addr: %v...\n", srv.Addr)
+	err := srv.ListenAndServe()
 	if err != nil {
 		log.Fatalf("error on ListenAndServe: %v", err)
 	}

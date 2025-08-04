@@ -14,15 +14,12 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/", http.FileServer(http.Dir(filepathRoot)))
 
-	srv := http.Server{
+	srv := &http.Server{
 		Addr:    ":" + port,
 		Handler: mux,
 	}
 	fmt.Printf("created new http.Server\n")
 
 	fmt.Printf("listening on Addr: %v...\n", srv.Addr)
-	err := srv.ListenAndServe()
-	if err != nil {
-		log.Fatalf("error on ListenAndServe: %v", err)
-	}
+	log.Fatal(srv.ListenAndServe())
 }

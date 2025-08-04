@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 )
@@ -18,8 +17,7 @@ func main() {
 		Addr:    ":" + port,
 		Handler: mux,
 	}
-	fmt.Printf("created new http.Server\n")
 
-	fmt.Printf("listening on Addr: %v...\n", srv.Addr)
+	log.Printf("Serving files from %s on port: %s\n", filepathRoot, port)
 	log.Fatal(srv.ListenAndServe())
 }

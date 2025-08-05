@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/rickNoise/chirpy/handlers"
 	"github.com/rickNoise/chirpy/internal/config"
 )
 
@@ -28,9 +27,9 @@ func main() {
 	wrappedHandler := apiCfg.MiddlewareMetricsInc(strippedHandler)
 
 	mux.Handle("/app/", wrappedHandler)
-	mux.HandleFunc("/healthz", handlers.ReadinessHandler)
-	mux.HandleFunc("/metrics", apiCfg.MetricsHandler)
-	mux.HandleFunc("/reset", apiCfg.ResetHandler)
+	mux.HandleFunc("GET /healthz", apiCfg.ReadinessHandler)
+	mux.HandleFunc("GET /metrics", apiCfg.MetricsHandler)
+	mux.HandleFunc("POST /reset", apiCfg.ResetHandler)
 
 	srv := &http.Server{
 		Addr:    ":" + port,

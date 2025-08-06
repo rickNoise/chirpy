@@ -17,16 +17,20 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	/* /APP/ PATH PREFIX - SERVE WEBSITE */
 	// Create the fileserver
 	fileServer := http.FileServer(http.Dir(filepathRoot))
-
 	// Strip the prefix
 	strippedHandler := http.StripPrefix("/app", fileServer)
-
 	// Wrap with middleware
 	wrappedHandler := apiCfg.MiddlewareMetricsInc(strippedHandler)
-
+	// Handle /app/ pattern
 	mux.Handle("/app/", wrappedHandler)
+
+	/* /API/ PATH PREFIX - SERVE API */
+	// to be implemented
+
+	/* MISC PATHS */
 	mux.HandleFunc("GET /healthz", apiCfg.ReadinessHandler)
 	mux.HandleFunc("GET /metrics", apiCfg.MetricsHandler)
 	mux.HandleFunc("POST /reset", apiCfg.ResetHandler)

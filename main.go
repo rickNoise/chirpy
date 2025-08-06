@@ -29,9 +29,11 @@ func main() {
 
 	/* /API/ PATH PREFIX - SERVE API */
 	mux.HandleFunc("GET /api/healthz", apiCfg.ReadinessHandler)
-	mux.HandleFunc("GET /api/metrics", apiCfg.MetricsHandler)
-	mux.HandleFunc("POST /api/reset", apiCfg.ResetHandler)
-
+	
+	/* /ADMIN/ PATH PREFIX */
+	mux.HandleFunc("GET /admin/metrics", apiCfg.MetricsHandler)
+	mux.HandleFunc("POST /admin/reset", apiCfg.ResetHandler)
+	
 	srv := &http.Server{
 		Addr:    ":" + port,
 		Handler: mux,

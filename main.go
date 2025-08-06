@@ -28,12 +28,9 @@ func main() {
 	mux.Handle("/app/", wrappedHandler)
 
 	/* /API/ PATH PREFIX - SERVE API */
-	// to be implemented
-
-	/* MISC PATHS */
-	mux.HandleFunc("GET /healthz", apiCfg.ReadinessHandler)
-	mux.HandleFunc("GET /metrics", apiCfg.MetricsHandler)
-	mux.HandleFunc("POST /reset", apiCfg.ResetHandler)
+	mux.HandleFunc("GET /api/healthz", apiCfg.ReadinessHandler)
+	mux.HandleFunc("GET /api/metrics", apiCfg.MetricsHandler)
+	mux.HandleFunc("POST /api/reset", apiCfg.ResetHandler)
 
 	srv := &http.Server{
 		Addr:    ":" + port,

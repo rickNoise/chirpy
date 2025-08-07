@@ -22,5 +22,14 @@ POST http://localhost:8080/api/validate_chirp
 content-type: application/json
 
 {
+    "body": "a chirp with Kerfuffle kerfuffle, fornax FORNAX FORNAX! sharbert"
+}
+
+###
+
+POST http://localhost:8080/api/validate_chirp
+content-type: application/json
+
+{
     body": "a chirp"
 }

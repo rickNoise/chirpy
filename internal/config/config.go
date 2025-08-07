@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"sync/atomic"
 )
 
@@ -54,8 +55,8 @@ func (cfg *ApiConfig) HandlerValidateChirp(w http.ResponseWriter, r *http.Reques
 		Body string `json:"body"`
 	}
 
-	type returnVals struct {
-		Valid bool `json:"valid"`
+	type censoredChirp struct {
+		CleanedBody string `json:"cleaned_body"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -72,13 +73,63 @@ func (cfg *ApiConfig) HandlerValidateChirp(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// chirp is valid
-	respondWithJSON(w, http.StatusOK, returnVals{
-		Valid: true,
+	// check if chirp body requires censoring (still valid)
+	_, censoredBody := censorChirp(params.Body)
+
+	respondWithJSON(w, http.StatusOK, censoredChirp{
+		CleanedBody: censoredBody,
 	})
 }
 
 /* HELPER FUNCTIONS */
+
+// censorChirp accepts a string and checks it for any words needing to be censored.
+// It returns a bool that indicates if any censoring was required, and a string of the censored body (empty string if no censor required).
+func censorChirp(body string) (bool, string) {
+	/*
+		Replace all "profane" words with 4 asterisks: ****.
+
+		Assuming the length validation passed, replace any of the following words in the Chirp with the static 4-character string ****:
+		kerfuffle
+		sharbert
+		fornax
+
+		Be sure to match against uppercase versions of the words as well, but not punctuation. "Sharbert!" does not need to be replaced, we'll consider it a different word due to the exclamation point.
+	*/
+
+	// hardcoded list of banned words & suitable replacement
+	bannedWordsSlice := []string{
+		"kerfuffle",
+		"sharbert",
+		"fornax",
+	}
+	replacementForBannedWord := "****"
+
+	// create a map simulating a set
+	bannedWordMap := make(map[string]struct{})
+	for _, word := range bannedWordsSlice {
+		bannedWordMap[word] = struct{}{}
+	}
+
+	// split into words on space
+	bodyWords := strings.Split(body, " ")
+
+	// initialise
+	censoredBody := []string{}
+	anyCensorDone := false
+
+	// check each word against the banned word set
+	for _, word := range bodyWords {
+		if _, found := bannedWordMap[strings.ToLower(word)]; found {
+			censoredBody = append(censoredBody, replacementForBannedWord)
+			anyCensorDone = true
+		} else {
+			censoredBody = append(censoredBody, word)
+		}
+	}
+
+	return anyCensorDone, strings.Join(censoredBody, " ")
+}
 
 func respondWithError(w http.ResponseWriter, code int, msg string, err error) {
 	if err != nil {

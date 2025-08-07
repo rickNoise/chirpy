@@ -7,12 +7,15 @@ import (
 	"net/http"
 	"strings"
 	"sync/atomic"
+
+	"github.com/rickNoise/chirpy/internal/database"
 )
 
 const maxChirpLength = 140
 
 type ApiConfig struct {
 	fileserverHits atomic.Int32
+	DbQueries      *database.Queries
 }
 
 func (cfg *ApiConfig) MiddlewareMetricsInc(next http.Handler) http.Handler {

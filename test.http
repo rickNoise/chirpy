@@ -1,0 +1,26 @@
+###
+
+POST http://localhost:8080/api/validate_chirp
+content-type: application/json
+
+{
+    "body": "a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp "
+}
+
+###
+
+POST http://localhost:8080/api/validate_chirp
+content-type: application/json
+
+{
+    "body": "a chirp"
+}
+
+###
+
+POST http://localhost:8080/api/validate_chirp
+content-type: application/json
+
+{
+    body": "a chirp"
+}

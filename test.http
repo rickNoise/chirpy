@@ -1,5 +1,27 @@
 ###
 
+POST http://localhost:8080/admin/reset
+
+###
+
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+    "email": "user@example.com"
+}
+
+###
+
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+    "email": 123
+}
+
+###
+
 POST http://localhost:8080/api/validate_chirp
 content-type: application/json
 

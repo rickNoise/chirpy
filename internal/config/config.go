@@ -2,12 +2,14 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
 	"sync/atomic"
 
+	"github.com/lib/pq"
 	"github.com/rickNoise/chirpy/internal/database"
 )
 
@@ -16,6 +18,7 @@ const maxChirpLength = 140
 type ApiConfig struct {
 	fileserverHits atomic.Int32
 	DbQueries      *database.Queries
+	Platform       string
 }
 
 func (cfg *ApiConfig) MiddlewareMetricsInc(next http.Handler) http.Handler {
@@ -47,10 +50,16 @@ func (cfg *ApiConfig) MetricsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (cfg *ApiConfig) ResetHandler(w http.ResponseWriter, r *http.Request) {
-	cfg.fileserverHits.Store(0)
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
+	if cfg.Platform != "dev" {
+		respondWithError(w, http.StatusForbidden, "cannot reset all user data in a non-dev environment", nil)
+		return
+	}
+
+	err := cfg.DbQueries.DeleteAllUsers(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not delete user data", err)
+	}
+	respondWithJSON(w, http.StatusOK, struct{}{})
 }
 
 func (cfg *ApiConfig) HandlerValidateChirp(w http.ResponseWriter, r *http.Request) {
@@ -84,10 +93,51 @@ func (cfg *ApiConfig) HandlerValidateChirp(w http.ResponseWriter, r *http.Reques
 	})
 }
 
+func (cfg *ApiConfig) HandlerCreateUser(w http.ResponseWriter, r *http.Request) {
+	type parameters struct {
+		Email string `json:"email"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	params := parameters{}
+	err := decoder.Decode(&params)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "could not decode request body", err)
+		return
+	}
+
+	dbUser, err := cfg.DbQueries.CreateUser(r.Context(), params.Email)
+	if err != nil {
+		if checkForUniqueConstraintViolationPostgresql(err) {
+			respondWithError(w, http.StatusConflict, "user already exists", err)
+		} else {
+			respondWithError(w, http.StatusInternalServerError, "could not create user", err)
+		}
+		return
+	}
+
+	// map database.User --> User struct to control JSON keys
+	jsonUser := User{
+		ID:        dbUser.ID,
+		CreatedAt: dbUser.CreatedAt,
+		UpdatedAt: dbUser.UpdatedAt,
+		Email:     dbUser.Email,
+	}
+
+	respondWithJSON(w, 201, jsonUser)
+}
+
 /* HELPER FUNCTIONS */
 
 // censorChirp accepts a string and checks it for any words needing to be censored.
 // It returns a bool that indicates if any censoring was required, and a string of the censored body (empty string if no censor required).
+
+// returns true if passed error is a postgres unique constraint violation error
+func checkForUniqueConstraintViolationPostgresql(err error) bool {
+	var pqErr *pq.Error
+	return errors.As(err, &pqErr) && pqErr.Code == "23505"
+}
+
 func censorChirp(body string) (bool, string) {
 	/*
 		Replace all "profane" words with 4 asterisks: ****.

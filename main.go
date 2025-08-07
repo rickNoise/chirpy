@@ -22,6 +22,14 @@ func main() {
 	// Load environment variables
 	godotenv.Load()
 
+	// Create an instance of apiConfig
+	apiCfg := &config.ApiConfig{}
+
+	// Initialise platform
+	platform := os.Getenv("PLATFORM")
+	apiCfg.Platform = platform
+	fmt.Printf("initialised with platform: %s", platform)
+
 	// Initialise database connection
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
@@ -31,11 +39,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connect to database: %s", err)
 	}
-	fmt.Println("successfully connected to db")
-
-	// Create an instance of apiConfig
-	apiCfg := &config.ApiConfig{}
 	apiCfg.DbQueries = database.New(db)
+	fmt.Println("successfully connected to db")
 
 	mux := http.NewServeMux()
 
@@ -50,6 +55,7 @@ func main() {
 	mux.Handle("/app/", wrappedHandler)
 
 	/* /API/ PATH PREFIX - SERVE API */
+	mux.HandleFunc("POST /api/users", apiCfg.HandlerCreateUser)
 	mux.HandleFunc("POST /api/validate_chirp", apiCfg.HandlerValidateChirp)
 	mux.HandleFunc("GET /api/healthz", apiCfg.ReadinessHandler)
 

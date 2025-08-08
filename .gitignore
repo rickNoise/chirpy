@@ -3,6 +3,7 @@
 
 # Compiled binaries
 out
+chirpy
 *.exe
 
 # Go-specific

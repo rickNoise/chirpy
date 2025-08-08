@@ -1,11 +1,15 @@
 ###
 
+GET http://localhost:8080/api/chirps
+
+###
+
 POST http://localhost:8080/api/chirps
 Content-Type: application/json
 
 {
   "body": "Hello, world!",
-  "user_id": "7209e6d9-2340-4150-aca5-0ff8b97a05ec"
+  "user_id": "f3a3bf85-b1a0-42a6-9c2a-6218c35dbdcb"
 }
 
 ###

@@ -147,6 +147,27 @@ func (cfg *ApiConfig) HandlerCreateUser(w http.ResponseWriter, r *http.Request) 
 	respondWithJSON(w, 201, jsonUser)
 }
 
+// Add a GET /api/chirps endpoint that returns all chirps in the database. It should return them in the same structure as the POST /api/chirps endpoint, but as an array. Use a 200 status code for success. Order them by created_at in ascending order.
+func (cfg *ApiConfig) HandleGetAllChirps(w http.ResponseWriter, r *http.Request) {
+	dbChirps, err := cfg.DbQueries.GetAllChirps(context.Background())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not get chirps", err)
+	}
+
+	var jsonChirps []Chirp
+	for _, dbChirp := range dbChirps {
+		jsonChirps = append(jsonChirps, Chirp{
+			Id:        dbChirp.ID,
+			CreatedAt: dbChirp.CreatedAt,
+			UpdatedAt: dbChirp.UpdatedAt,
+			Body:      dbChirp.Body,
+			UserId:    dbChirp.UserID,
+		})
+	}
+
+	respondWithJSON(w, http.StatusOK, jsonChirps)
+}
+
 /* HELPER FUNCTIONS */
 
 // censorChirp accepts a string and checks it for any words needing to be censored.

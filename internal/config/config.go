@@ -85,6 +85,7 @@ func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) 
 	}
 	if len(params.Body) == 0 {
 		respondWithError(w, http.StatusBadRequest, "Chirp cannot have an empty body", nil)
+		return
 	}
 
 	// check if chirp body requires censoring (still valid)
@@ -94,13 +95,19 @@ func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) 
 	parsedUserId, err := uuid.Parse(params.UserId)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "provided user_id is not a valid UUID", err)
+		return
 	}
 	dbChirp, err := cfg.DbQueries.CreateChirp(context.Background(), database.CreateChirpParams{
 		Body:   censoredBody,
 		UserID: parsedUserId,
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "could not add chirp to database", err)
+		if checkForForeignKeyConstraintViolationPostgresql(err) {
+			respondWithError(w, http.StatusBadRequest, "could not add chirp to db, likely request contained a user_id that does not exist", err)
+		} else {
+			respondWithError(w, http.StatusInternalServerError, "could not add chirp to database", err)
+		}
+		return
 	}
 
 	// If creating the record succeeds, respond with a 201 status code and the full chirp resource
@@ -152,6 +159,7 @@ func (cfg *ApiConfig) HandleGetAllChirps(w http.ResponseWriter, r *http.Request)
 	dbChirps, err := cfg.DbQueries.GetAllChirps(context.Background())
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "could not get chirps", err)
+		return
 	}
 
 	var jsonChirps []Chirp
@@ -177,6 +185,12 @@ func (cfg *ApiConfig) HandleGetAllChirps(w http.ResponseWriter, r *http.Request)
 func checkForUniqueConstraintViolationPostgresql(err error) bool {
 	var pqErr *pq.Error
 	return errors.As(err, &pqErr) && pqErr.Code == "23505"
+}
+
+// returns true if passed error is a postgres FK constraint violation
+func checkForForeignKeyConstraintViolationPostgresql(err error) bool {
+	var pqErr *pq.Error
+	return errors.As(err, &pqErr) && pqErr.Code == "23503"
 }
 
 func censorChirp(body string) (bool, string) {

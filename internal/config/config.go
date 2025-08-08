@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"strings"
 	"sync/atomic"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -104,15 +103,8 @@ func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) 
 		respondWithError(w, http.StatusInternalServerError, "could not add chirp to database", err)
 	}
 
-	type DbChirp struct {
-		Id        uuid.UUID `json:"id"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-		Body      string    `json:"body"`
-		UserId    uuid.UUID `json:"user_id"`
-	}
 	// If creating the record succeeds, respond with a 201 status code and the full chirp resource
-	respondWithJSON(w, http.StatusCreated, DbChirp{
+	respondWithJSON(w, http.StatusCreated, Chirp{
 		Id:        dbChirp.ID,
 		CreatedAt: dbChirp.CreatedAt,
 		UpdatedAt: dbChirp.UpdatedAt,

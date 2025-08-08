@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -8,7 +9,9 @@ import (
 	"net/http"
 	"strings"
 	"sync/atomic"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/rickNoise/chirpy/internal/database"
 )
@@ -62,13 +65,10 @@ func (cfg *ApiConfig) ResetHandler(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, struct{}{})
 }
 
-func (cfg *ApiConfig) HandlerValidateChirp(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Body string `json:"body"`
-	}
-
-	type censoredChirp struct {
-		CleanedBody string `json:"cleaned_body"`
+		Body   string `json:"body"`
+		UserId string `json:"user_id"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -84,12 +84,40 @@ func (cfg *ApiConfig) HandlerValidateChirp(w http.ResponseWriter, r *http.Reques
 		respondWithError(w, http.StatusBadRequest, "Chirp is too long", nil)
 		return
 	}
+	if len(params.Body) == 0 {
+		respondWithError(w, http.StatusBadRequest, "Chirp cannot have an empty body", nil)
+	}
 
 	// check if chirp body requires censoring (still valid)
 	_, censoredBody := censorChirp(params.Body)
 
-	respondWithJSON(w, http.StatusOK, censoredChirp{
-		CleanedBody: censoredBody,
+	// If the chirp is valid, you should save it in the database
+	parsedUserId, err := uuid.Parse(params.UserId)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "provided user_id is not a valid UUID", err)
+	}
+	dbChirp, err := cfg.DbQueries.CreateChirp(context.Background(), database.CreateChirpParams{
+		Body:   censoredBody,
+		UserID: parsedUserId,
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not add chirp to database", err)
+	}
+
+	type DbChirp struct {
+		Id        uuid.UUID `json:"id"`
+		CreatedAt time.Time `json:"created_at"`
+		UpdatedAt time.Time `json:"updated_at"`
+		Body      string    `json:"body"`
+		UserId    uuid.UUID `json:"user_id"`
+	}
+	// If creating the record succeeds, respond with a 201 status code and the full chirp resource
+	respondWithJSON(w, http.StatusCreated, DbChirp{
+		Id:        dbChirp.ID,
+		CreatedAt: dbChirp.CreatedAt,
+		UpdatedAt: dbChirp.UpdatedAt,
+		Body:      dbChirp.Body,
+		UserId:    dbChirp.UserID,
 	})
 }
 
@@ -184,6 +212,7 @@ func censorChirp(body string) (bool, string) {
 	return anyCensorDone, strings.Join(censoredBody, " ")
 }
 
+// msg is returned to the requester; err is logged internally
 func respondWithError(w http.ResponseWriter, code int, msg string, err error) {
 	if err != nil {
 		fmt.Println(err)

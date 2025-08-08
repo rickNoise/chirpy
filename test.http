@@ -1,5 +1,15 @@
 ###
 
+POST http://localhost:8080/api/chirps
+Content-Type: application/json
+
+{
+  "body": "Hello, world!",
+  "user_id": "7209e6d9-2340-4150-aca5-0ff8b97a05ec"
+}
+
+###
+
 POST http://localhost:8080/admin/reset
 
 ###
@@ -21,37 +31,3 @@ Content-Type: application/json
 }
 
 ###
-
-POST http://localhost:8080/api/validate_chirp
-content-type: application/json
-
-{
-    "body": "a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp a chirp "
-}
-
-###
-
-POST http://localhost:8080/api/validate_chirp
-content-type: application/json
-
-{
-    "body": "a chirp"
-}
-
-###
-
-POST http://localhost:8080/api/validate_chirp
-content-type: application/json
-
-{
-    "body": "a chirp with Kerfuffle kerfuffle, fornax FORNAX FORNAX! sharbert"
-}
-
-###
-
-POST http://localhost:8080/api/validate_chirp
-content-type: application/json
-
-{
-    body": "a chirp"
-}

@@ -101,3 +101,10 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	w.WriteHeader(code)
 	w.Write(dat)
 }
+
+func validatePassword(password string) bool {
+	if len(password) == 0 {
+		return false
+	}
+	return true
+}

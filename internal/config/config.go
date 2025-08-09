@@ -116,7 +116,7 @@ func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
-func (cfg *ApiConfig) HandlerCreateUser(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiConfig) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Email string `json:"email"`
 	}

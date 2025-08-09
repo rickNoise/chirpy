@@ -19,3 +19,15 @@ SELECT
     user_id
 FROM chirps
 ORDER BY created_at ASC;
+
+-- name: GetChirp :one
+-- Retrieves a single chirp based on provided chirp id.
+SELECT
+    id,
+    created_at,
+    updated_at,
+    body,
+    user_id
+FROM chirps
+WHERE
+    id = @chirpId;

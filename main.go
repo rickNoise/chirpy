@@ -56,6 +56,7 @@ func main() {
 
 	/* /API/ PATH PREFIX - SERVE API */
 	mux.HandleFunc("POST /api/users", apiCfg.HandleCreateUser)
+	mux.HandleFunc("POST /api/login", apiCfg.HandleLogin)
 	mux.HandleFunc("POST /api/chirps", apiCfg.HandleCreateChirp)
 	mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.HandleGetChirp)
 	mux.HandleFunc("GET /api/chirps", apiCfg.HandleGetAllChirps)

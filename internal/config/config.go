@@ -131,6 +131,11 @@ func (cfg *ApiConfig) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !validatePassword(params.Password) {
+		respondWithError(w, http.StatusBadRequest, "invalid password provided", nil)
+		return
+	}
+
 	hashedPassword, err := auth.HashPassword(params.Password)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "could not create user", err)

@@ -103,8 +103,5 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 }
 
 func validatePassword(password string) bool {
-	if len(password) == 0 {
-		return false
-	}
-	return true
+	return len(password) != 0
 }

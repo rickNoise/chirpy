@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 
 	"github.com/google/uuid"
+	"github.com/rickNoise/chirpy/internal/auth"
 	"github.com/rickNoise/chirpy/internal/database"
 )
 
@@ -118,7 +119,8 @@ func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) 
 
 func (cfg *ApiConfig) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Email string `json:"email"`
+		Password string `json:"password"`
+		Email    string `json:"email"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -129,7 +131,16 @@ func (cfg *ApiConfig) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbUser, err := cfg.DbQueries.CreateUser(r.Context(), params.Email)
+	hashedPassword, err := auth.HashPassword(params.Password)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not create user", err)
+		return
+	}
+
+	dbUser, err := cfg.DbQueries.CreateUser(r.Context(), database.CreateUserParams{
+		Email:          params.Email,
+		Hashedpassword: hashedPassword,
+	})
 	if err != nil {
 		if checkForUniqueConstraintViolationPostgresql(err) {
 			respondWithError(w, http.StatusConflict, "user already exists", err)

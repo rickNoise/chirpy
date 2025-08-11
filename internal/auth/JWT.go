@@ -33,7 +33,6 @@ func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (str
 		return "", fmt.Errorf("could not sign token: %w", err)
 	}
 
-	fmt.Printf("signed string token: %s, err: %s", ss, err)
 	return ss, nil
 }
 

@@ -64,6 +64,7 @@ func (cfg *ApiConfig) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "could not login user", fmt.Errorf("failed to create JWT token: %w", err))
+		return
 	}
 
 	type LoginResponse struct {

@@ -77,7 +77,7 @@ func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) 
 	// check request for valid Authorization header
 	bearerToken, err := auth.GetBearerToken(r.Header)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "no valid bearer token in request", err)
+		respondWithError(w, http.StatusUnauthorized, "no valid bearer token in request", err)
 		return
 	}
 
@@ -85,6 +85,7 @@ func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) 
 	parsedUserId, err := auth.ValidateJWT(bearerToken, cfg.JWTSecret)
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, "invalid user bearer token", err)
+		return
 	}
 
 	// check length of chirp body

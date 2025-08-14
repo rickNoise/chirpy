@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"sync/atomic"
 
-	"github.com/google/uuid"
 	"github.com/rickNoise/chirpy/internal/auth"
 	"github.com/rickNoise/chirpy/internal/database"
 )
@@ -64,8 +63,7 @@ func (cfg *ApiConfig) ResetHandler(w http.ResponseWriter, r *http.Request) {
 
 func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Body   string `json:"body"`
-		UserId string `json:"user_id"`
+		Body string `json:"body"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -74,6 +72,19 @@ func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "error decoding req json body", err)
 		return
+	}
+
+	// check request for valid Authorization header
+	bearerToken, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "no valid bearer token in request", err)
+		return
+	}
+
+	// determine posting user by JWT
+	parsedUserId, err := auth.ValidateJWT(bearerToken, cfg.JWTSecret)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "invalid user bearer token", err)
 	}
 
 	// check length of chirp body
@@ -89,12 +100,6 @@ func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) 
 	// check if chirp body requires censoring (still valid)
 	_, censoredBody := censorChirp(params.Body)
 
-	// If the chirp is valid, you should save it in the database
-	parsedUserId, err := uuid.Parse(params.UserId)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "provided user_id is not a valid UUID", err)
-		return
-	}
 	dbChirp, err := cfg.DbQueries.CreateChirp(context.Background(), database.CreateChirpParams{
 		Body:   censoredBody,
 		UserID: parsedUserId,

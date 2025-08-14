@@ -38,9 +38,8 @@ func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (str
 	return ss, nil
 }
 
+// Use the jwt.ParseWithClaims function to validate the signature of the JWT and extract the claims into a *jwt.Token struct. An error will be returned if the token is invalid or has expired.
 func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
-	// Use the jwt.ParseWithClaims function to validate the signature of the JWT and extract the claims into a *jwt.Token struct. An error will be returned if the token is invalid or has expired.
-
 	token, err := jwt.ParseWithClaims(
 		tokenString,
 		&MyCustomClaims{},

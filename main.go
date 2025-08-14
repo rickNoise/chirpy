@@ -30,6 +30,9 @@ func main() {
 	apiCfg.Platform = platform
 	fmt.Printf("initialised with platform: %s", platform)
 
+	// Load JWT_SECRET from .env & store in config
+	apiCfg.JWTSecret = os.Getenv("JWT_SECRET")
+
 	// Initialise database connection
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {

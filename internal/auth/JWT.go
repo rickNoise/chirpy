@@ -3,6 +3,8 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -59,4 +61,23 @@ func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
 	} else {
 		return uuid.UUID{}, errors.New("unknown claims type, cannot proceed")
 	}
+}
+
+// This function looks for the Authorization header in the headers parameter and return the TOKEN_STRING if it exists (stripping off the Bearer prefix and whitespace). If the header doesn't exist, return an error.
+// Auth information will come into our server in the Authorization header. Its value will look like this: Bearer TOKEN_STRING
+func GetBearerToken(headers http.Header) (string, error) {
+	// Check if an Authorization header exists
+	rawTokenString := headers.Get("Authorization")
+	if rawTokenString == "" {
+		return "", errors.New("cannot get Bearer Token, input does not have an Authorization header")
+	}
+
+	// expecting the header value of the form "Bearer TOKEN_STRING"
+	parsedTokenString := strings.Fields(rawTokenString)
+	if len(parsedTokenString) != 2 {
+		return "", fmt.Errorf("cannot get Bearer Token, unexpected Header format: %s", rawTokenString)
+	}
+
+	// we want to return TOKEN_STRING only
+	return parsedTokenString[1], nil
 }

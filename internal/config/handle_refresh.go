@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/rickNoise/chirpy/internal/auth"
 )
 
 // Create a POST /api/refresh endpoint. This new endpoint does not accept a request body, but does require a refresh token to be present in the headers, in the same Authorization: Bearer <token> format.
@@ -38,10 +40,21 @@ func (cfg *ApiConfig) HandleRefresh(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusUnauthorized, "", fmt.Errorf("provided refresh token is expired: %v", dbRefreshToken))
 	}
 
+	// generate a new refresh token to include in response for the user requesting
+	requestingUser := dbRefreshToken.UserID
+	newAccessToken, err := auth.MakeJWT(
+		requestingUser,
+		cfg.JWTSecret,
+		ACCESS_TOKEN_EXPIRATION,
+	)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "error refreshing access token", err)
+	}
+
 	type RefreshResponse struct {
 		Token string `json:"token"`
 	}
 	respondWithJSON(w, http.StatusOK, RefreshResponse{
-		Token: dbRefreshToken.Token,
+		Token: newAccessToken,
 	})
 }

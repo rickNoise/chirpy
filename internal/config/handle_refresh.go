@@ -38,6 +38,11 @@ func (cfg *ApiConfig) HandleRefresh(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusUnauthorized, "", fmt.Errorf("provided refresh token is expired: %v", dbRefreshToken))
 	}
 
+	// if the revoked_at field in the db has a timestampe, we cannot accept this token
+	if dbRefreshToken.RevokedAt.Valid {
+		respondWithError(w, http.StatusUnauthorized, "", fmt.Errorf("provided refresh token has been revoked: %v", dbRefreshToken))
+	}
+
 	// generate a new refresh token to include in response for the user requesting
 	requestingUser := dbRefreshToken.UserID
 	newAccessToken, err := auth.MakeJWT(

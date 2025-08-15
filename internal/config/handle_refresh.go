@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 )
 
-// // Create a POST /api/refresh endpoint. This new endpoint does not accept a request body, but does require a refresh token to be present in the headers, in the same Authorization: Bearer <token> format.
+// Create a POST /api/refresh endpoint. This new endpoint does not accept a request body, but does require a refresh token to be present in the headers, in the same Authorization: Bearer <token> format.
 // Look up the token in the database. If it doesn't exist, or if it's expired, respond with a 401 status code. Otherwise, respond with a 200 code and this shape:
 //
 //	{
@@ -30,6 +31,11 @@ func (cfg *ApiConfig) HandleRefresh(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, "", err)
 		return
+	}
+
+	// make sure token is not expired
+	if time.Now().After(dbRefreshToken.ExpiresAt) {
+		respondWithError(w, http.StatusUnauthorized, "", fmt.Errorf("provided refresh token is expired: %v", dbRefreshToken))
 	}
 
 	type RefreshResponse struct {

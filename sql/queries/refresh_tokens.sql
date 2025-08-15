@@ -31,3 +31,12 @@ SELECT
 FROM refresh_tokens
 WHERE
     token = @tokenString;
+
+-- name: RevokeRefreshToken :one
+-- semantically revokes a refresh token by placing a timestamp in the revoked_at field (which replaces a NULL value)
+UPDATE refresh_tokens
+SET
+    updated_at = NOW(),
+    revoked_at = NOW()
+WHERE
+    token = @token RETURNING *;

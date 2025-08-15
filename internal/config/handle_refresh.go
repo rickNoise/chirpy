@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -19,16 +20,13 @@ import (
 //
 // The token field should be a newly created access token for the given user that expires in 1 hour. I wrote a GetUserFromRefreshToken SQL query.
 func (cfg *ApiConfig) HandleRefresh(w http.ResponseWriter, r *http.Request) {
-	// first ensure valid refresh token is provided in request heaader
-	rawToken := r.Header.Get("Authorization")
-	parsedToken := strings.Fields(rawToken)
-	// catches if header value not in format: "Bearer <token>"
-	if len(parsedToken) != 2 {
-		respondWithError(w, http.StatusUnauthorized, "cannot refresh token", fmt.Errorf("cannot get Bearer Token, unexpected Header format: %s", rawToken))
+
+	tokenString, err := getTokenStringFromAuthorizationHeader(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "cannot refresh token", fmt.Errorf("cannot get Bearer Token, unexpected Header formats"))
 		return
 	}
-	// assumes header value format: "Bearer <token>"
-	tokenString := parsedToken[1]
+
 	dbRefreshToken, err := cfg.DbQueries.GetRefreshTokenByTokenString(context.Background(), tokenString)
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, "", err)
@@ -57,4 +55,22 @@ func (cfg *ApiConfig) HandleRefresh(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, RefreshResponse{
 		Token: newAccessToken,
 	})
+}
+
+// Parses a provided http request header, looking for an 'Authorization' key with a value in the format "Bearer <token>". Does not guarantee a valid token value; will return the first "word" after "Bearer" (using strings.Fields). Returns an error if no 'Authorization' key is found or if the corresponding value has less than 2 words.
+func getTokenStringFromAuthorizationHeader(headers http.Header) (string, error) {
+	// first ensure valid refresh token is provided in request heaader
+	rawToken := headers.Get("Authorization")
+	if rawToken == "" {
+		return "", errors.New("no Authorization header found, or found with an empty value")
+	}
+
+	parsedToken := strings.Fields(rawToken)
+	// catches if header value not in format: "Bearer <token>"
+	if len(parsedToken) != 2 {
+		return "", fmt.Errorf("invalid value format for Authorization header value")
+	}
+
+	// assumes header value format: "Bearer <token>"
+	return parsedToken[1], nil
 }

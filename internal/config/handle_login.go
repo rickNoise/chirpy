@@ -9,17 +9,22 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rickNoise/chirpy/internal/auth"
+	"github.com/rickNoise/chirpy/internal/database"
 )
 
 /* CONSTANTS */
+// Access tokens should expire in 1 hour.
 const ACCESS_TOKEN_EXPIRATION = time.Hour
+
+// Refresh tokens should expire after 60 days. Expiration time is stored in the database.
+const REFRESH_TOKEN_EXPIRATION = time.Hour * 24 * 60
 
 func (cfg *ApiConfig) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	// decode request
 	// expecting {
 	//   "password": "04234",
-	//   "email": "lane@example.com",
+	//   "email": "lane@example.com"
 	// }
 	type parameters struct {
 		Password string `json:"password"`
@@ -47,10 +52,9 @@ func (cfg *ApiConfig) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// create access token
 	accesTokenExpiration := ACCESS_TOKEN_EXPIRATION
-
-	// create token
-	createdToken, err := auth.MakeJWT(
+	accessToken, err := auth.MakeJWT(
 		dbUser.ID,
 		cfg.JWTSecret,
 		accesTokenExpiration,
@@ -60,20 +64,35 @@ func (cfg *ApiConfig) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// create refresh token and store it in the db
+	var refreshToken string
+	refreshToken, _ = auth.MakeRefreshToken()
+	_, err = cfg.DbQueries.CreateRefreshToken(context.Background(), database.CreateRefreshTokenParams{
+		Token:     refreshToken,
+		UserID:    dbUser.ID,
+		ExpiresAt: time.Now().Add(REFRESH_TOKEN_EXPIRATION), // calculate expiration timestamp
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not login user", fmt.Errorf("error storing refresh token in db: %w", err))
+		return
+	}
+
 	type LoginResponse struct {
-		ID        uuid.UUID `json:"id"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-		Email     string    `json:"email"`
-		Token     string    `json:"token"`
+		ID           uuid.UUID `json:"id"`
+		CreatedAt    time.Time `json:"created_at"`
+		UpdatedAt    time.Time `json:"updated_at"`
+		Email        string    `json:"email"`
+		Token        string    `json:"token"`
+		RefreshToken string    `json:"refresh_token"`
 	}
 
 	jsonLoginResponse := LoginResponse{
-		ID:        dbUser.ID,
-		CreatedAt: dbUser.CreatedAt,
-		UpdatedAt: dbUser.UpdatedAt,
-		Email:     dbUser.Email,
-		Token:     createdToken,
+		ID:           dbUser.ID,
+		CreatedAt:    dbUser.CreatedAt,
+		UpdatedAt:    dbUser.UpdatedAt,
+		Email:        dbUser.Email,
+		Token:        accessToken,
+		RefreshToken: refreshToken,
 	}
 	// otherwise 200 OK and a copy of the user resource without password
 	respondWithJSON(w, http.StatusOK, jsonLoginResponse)

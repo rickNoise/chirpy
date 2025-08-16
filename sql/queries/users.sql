@@ -28,3 +28,13 @@ SELECT
 FROM users
 WHERE
     email = @useremail;
+
+-- name: UpdateEmailAndPasswordByUserId :one
+-- updates a user record with a new hashed password and email address
+UPDATE users
+SET
+    updated_at = NOW(),
+    email = @newEmail,
+    hashed_password = @newHashedPassword
+WHERE
+    id = @userId RETURNING *;

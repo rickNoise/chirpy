@@ -31,3 +31,7 @@ SELECT
 FROM chirps
 WHERE
     id = @chirpId;
+
+-- name: DeleteChirpById :one
+-- Deletes the chirp with the provided chirp id (uuid)
+DELETE FROM chirps WHERE id = @chirpId RETURNING *;

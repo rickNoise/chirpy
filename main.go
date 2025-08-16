@@ -66,6 +66,7 @@ func main() {
 	mux.HandleFunc("POST /api/revoke", apiCfg.HandleRevoke)
 	mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.HandleGetChirp)
 	mux.HandleFunc("GET /api/chirps", apiCfg.HandleGetAllChirps)
+	mux.HandleFunc("DELETE /api/chirps/{chirpID}", apiCfg.HandleDeleteChirp)
 	mux.HandleFunc("GET /api/healthz", apiCfg.ReadinessHandler)
 
 	/* /ADMIN/ PATH PREFIX */

@@ -38,3 +38,12 @@ SET
     hashed_password = @newHashedPassword
 WHERE
     id = @userId RETURNING *;
+
+-- name: UpgradeUserToChirpyRedById :one
+-- upgrades a user to chirpy red based on their ID by modifying the is_chirpy_field to true.
+UPDATE users
+SET
+    updated_at = NOW(),
+    is_chirpy_red = TRUE
+WHERE
+    id = @userid RETURNING *;

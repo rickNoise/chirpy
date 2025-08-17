@@ -58,9 +58,10 @@ func main() {
 	mux.Handle("/app/", wrappedHandler)
 
 	/* /API/ PATH PREFIX - SERVE API */
+	mux.HandleFunc("POST /api/login", apiCfg.HandleLogin)
 	mux.HandleFunc("POST /api/users", apiCfg.HandleCreateUser)
 	mux.HandleFunc("PUT /api/users", apiCfg.HandleUpdateUser)
-	mux.HandleFunc("POST /api/login", apiCfg.HandleLogin)
+	mux.HandleFunc("POST /api/polka/webhooks", apiCfg.HandleUpgradeUser)
 	mux.HandleFunc("POST /api/chirps", apiCfg.HandleCreateChirp)
 	mux.HandleFunc("POST /api/refresh", apiCfg.HandleRefresh)
 	mux.HandleFunc("POST /api/revoke", apiCfg.HandleRevoke)

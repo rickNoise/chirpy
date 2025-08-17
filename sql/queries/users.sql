@@ -19,15 +19,7 @@ VALUES (
 DELETE FROM users;
 
 -- name: GetUserByEmail :one
-SELECT
-    id,
-    created_at,
-    updated_at,
-    email,
-    hashed_password
-FROM users
-WHERE
-    email = @useremail;
+SELECT * FROM users WHERE email = @useremail;
 
 -- name: UpdateEmailAndPasswordByUserId :one
 -- updates a user record with a new hashed password and email address

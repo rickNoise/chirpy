@@ -52,6 +52,7 @@ func (cfg *ApiConfig) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		CreatedAt: dbUser.CreatedAt,
 		UpdatedAt: dbUser.UpdatedAt,
 		Email:     dbUser.Email,
+		IsChirpyRed: dbUser.IsChirpyRed.Bool,
 	}
 
 	respondWithJSON(w, 201, jsonUser)

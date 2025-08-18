@@ -63,11 +63,5 @@ func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// If creating the record succeeds, respond with a 201 status code and the full chirp resource
-	respondWithJSON(w, http.StatusCreated, Chirp{
-		Id:        dbChirp.ID,
-		CreatedAt: dbChirp.CreatedAt,
-		UpdatedAt: dbChirp.UpdatedAt,
-		Body:      dbChirp.Body,
-		UserId:    dbChirp.UserID,
-	})
+	respondWithJSON(w, http.StatusCreated, DatabaseChirpToAPIChirp(dbChirp))
 }

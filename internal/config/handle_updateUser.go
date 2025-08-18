@@ -43,7 +43,7 @@ func (cfg *ApiConfig) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedUser, err := cfg.DbQueries.UpdateEmailAndPasswordByUserId(
+	dbUpdatedUser, err := cfg.DbQueries.UpdateEmailAndPasswordByUserId(
 		context.Background(),
 		database.UpdateEmailAndPasswordByUserIdParams{
 			Newemail:          params.Email,
@@ -56,11 +56,5 @@ func (cfg *ApiConfig) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, User{
-		ID:          updatedUser.ID,
-		CreatedAt:   updatedUser.CreatedAt,
-		UpdatedAt:   updatedUser.UpdatedAt,
-		Email:       updatedUser.Email,
-		IsChirpyRed: updatedUser.IsChirpyRed.Bool,
-	})
+	respondWithJSON(w, http.StatusOK, DatabaseUserToAPIUser(dbUpdatedUser))
 }

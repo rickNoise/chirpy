@@ -32,6 +32,8 @@ func main() {
 
 	// Load JWT_SECRET from .env & store in config
 	apiCfg.JWTSecret = os.Getenv("JWT_SECRET")
+	// Load our Polka API key from .env & store in config
+	apiCfg.PolkaKey = os.Getenv("POLKA_KEY")
 
 	// Initialise database connection
 	dbURL := os.Getenv("DB_URL")

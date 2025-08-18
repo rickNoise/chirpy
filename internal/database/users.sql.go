@@ -24,7 +24,7 @@ VALUES (
         NOW(),
         $1,
         $2
-    ) RETURNING id, created_at, updated_at, email, hashed_password
+    ) RETURNING id, created_at, updated_at, email, hashed_password, is_chirpy_red
 `
 
 type CreateUserParams struct {
@@ -42,6 +42,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.UpdatedAt,
 		&i.Email,
 		&i.HashedPassword,
+		&i.IsChirpyRed,
 	)
 	return i, err
 }
@@ -57,15 +58,7 @@ func (q *Queries) DeleteAllUsers(ctx context.Context) error {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT
-    id,
-    created_at,
-    updated_at,
-    email,
-    hashed_password
-FROM users
-WHERE
-    email = $1
+SELECT id, created_at, updated_at, email, hashed_password, is_chirpy_red FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, useremail string) (User, error) {
@@ -77,6 +70,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, useremail string) (User, e
 		&i.UpdatedAt,
 		&i.Email,
 		&i.HashedPassword,
+		&i.IsChirpyRed,
 	)
 	return i, err
 }
@@ -88,7 +82,7 @@ SET
     email = $1,
     hashed_password = $2
 WHERE
-    id = $3 RETURNING id, created_at, updated_at, email, hashed_password
+    id = $3 RETURNING id, created_at, updated_at, email, hashed_password, is_chirpy_red
 `
 
 type UpdateEmailAndPasswordByUserIdParams struct {
@@ -107,6 +101,31 @@ func (q *Queries) UpdateEmailAndPasswordByUserId(ctx context.Context, arg Update
 		&i.UpdatedAt,
 		&i.Email,
 		&i.HashedPassword,
+		&i.IsChirpyRed,
+	)
+	return i, err
+}
+
+const upgradeUserToChirpyRedById = `-- name: UpgradeUserToChirpyRedById :one
+UPDATE users
+SET
+    updated_at = NOW(),
+    is_chirpy_red = TRUE
+WHERE
+    id = $1 RETURNING id, created_at, updated_at, email, hashed_password, is_chirpy_red
+`
+
+// upgrades a user to chirpy red based on their ID by modifying the is_chirpy_field to true.
+func (q *Queries) UpgradeUserToChirpyRedById(ctx context.Context, userid uuid.UUID) (User, error) {
+	row := q.db.QueryRowContext(ctx, upgradeUserToChirpyRedById, userid)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Email,
+		&i.HashedPassword,
+		&i.IsChirpyRed,
 	)
 	return i, err
 }

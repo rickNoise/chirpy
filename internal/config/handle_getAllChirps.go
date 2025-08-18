@@ -14,13 +14,7 @@ func (cfg *ApiConfig) HandleGetAllChirps(w http.ResponseWriter, r *http.Request)
 
 	var jsonChirps []Chirp
 	for _, dbChirp := range dbChirps {
-		jsonChirps = append(jsonChirps, Chirp{
-			Id:        dbChirp.ID,
-			CreatedAt: dbChirp.CreatedAt,
-			UpdatedAt: dbChirp.UpdatedAt,
-			Body:      dbChirp.Body,
-			UserId:    dbChirp.UserID,
-		})
+		jsonChirps = append(jsonChirps, DatabaseChirpToAPIChirp(dbChirp))
 	}
 
 	respondWithJSON(w, http.StatusOK, jsonChirps)

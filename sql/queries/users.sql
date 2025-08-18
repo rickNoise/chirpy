@@ -19,15 +19,7 @@ VALUES (
 DELETE FROM users;
 
 -- name: GetUserByEmail :one
-SELECT
-    id,
-    created_at,
-    updated_at,
-    email,
-    hashed_password
-FROM users
-WHERE
-    email = @useremail;
+SELECT * FROM users WHERE email = @useremail;
 
 -- name: UpdateEmailAndPasswordByUserId :one
 -- updates a user record with a new hashed password and email address
@@ -38,3 +30,12 @@ SET
     hashed_password = @newHashedPassword
 WHERE
     id = @userId RETURNING *;
+
+-- name: UpgradeUserToChirpyRedById :one
+-- upgrades a user to chirpy red based on their ID by modifying the is_chirpy_field to true.
+UPDATE users
+SET
+    updated_at = NOW(),
+    is_chirpy_red = TRUE
+WHERE
+    id = @userid RETURNING *;

@@ -23,12 +23,5 @@ func (cfg *ApiConfig) HandleGetChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jsonChirp := Chirp{
-		Id:        dbChirp.ID,
-		CreatedAt: dbChirp.CreatedAt,
-		UpdatedAt: dbChirp.UpdatedAt,
-		Body:      dbChirp.Body,
-		UserId:    dbChirp.UserID,
-	}
-	respondWithJSON(w, http.StatusOK, jsonChirp)
+	respondWithJSON(w, http.StatusOK, DatabaseChirpToAPIChirp(dbChirp))
 }

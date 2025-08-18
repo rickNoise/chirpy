@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/rickNoise/chirpy/internal/auth"
 	"github.com/rickNoise/chirpy/internal/database"
 )
@@ -78,19 +77,13 @@ func (cfg *ApiConfig) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type LoginResponse struct {
-		ID           uuid.UUID `json:"id"`
-		CreatedAt    time.Time `json:"created_at"`
-		UpdatedAt    time.Time `json:"updated_at"`
-		Email        string    `json:"email"`
-		Token        string    `json:"token"`
-		RefreshToken string    `json:"refresh_token"`
+		User                // anonymous embedding
+		Token        string `json:"token"`
+		RefreshToken string `json:"refresh_token"`
 	}
 
 	jsonLoginResponse := LoginResponse{
-		ID:           dbUser.ID,
-		CreatedAt:    dbUser.CreatedAt,
-		UpdatedAt:    dbUser.UpdatedAt,
-		Email:        dbUser.Email,
+		User:         DatabaseUserToAPIUser(dbUser),
 		Token:        accessToken,
 		RefreshToken: refreshToken,
 	}

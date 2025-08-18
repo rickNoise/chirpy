@@ -46,13 +46,5 @@ func (cfg *ApiConfig) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// map database.User --> User struct to control JSON keys
-	jsonUser := User{
-		ID:        dbUser.ID,
-		CreatedAt: dbUser.CreatedAt,
-		UpdatedAt: dbUser.UpdatedAt,
-		Email:     dbUser.Email,
-	}
-
-	respondWithJSON(w, 201, jsonUser)
+	respondWithJSON(w, 201, DatabaseUserToAPIUser(dbUser))
 }

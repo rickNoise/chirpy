@@ -7,7 +7,12 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/rickNoise/chirpy/internal/auth"
 )
+
+// Update the POST /api/polka/webhooks endpoint.
+// It should ensure that the API key in the header matches the one stored in the .env file.
+// If it doesn't, the endpoint should respond with a 401 status code.
 
 // Add a POST /api/polka/webhooks endpoint. It should accept a request of this shape:
 //
@@ -22,6 +27,13 @@ import (
 // If the event is user.upgraded, then it should update the user in the database, and mark that they are a Chirpy Red member.
 // If the user is upgraded successfully, the endpoint should respond with a 204 status code and an empty response body. If the user can't be found, the endpoint should respond with a 404 status code.
 func (cfg *ApiConfig) HandleUpgradeUser(w http.ResponseWriter, r *http.Request) {
+	// First ensure the API key in the haeader matches the one we have in config
+	headerKey, err := auth.GetAPIKey(r.Header)
+	if err != nil || headerKey != cfg.PolkaKey {
+		respondWithError(w, http.StatusUnauthorized, "", err)
+		return
+	}
+
 	type parameters struct {
 		Event string `json:"event"`
 		Data  struct {
@@ -31,7 +43,7 @@ func (cfg *ApiConfig) HandleUpgradeUser(w http.ResponseWriter, r *http.Request) 
 
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
-	err := decoder.Decode(&params)
+	err = decoder.Decode(&params)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "could not decode request body", err)
 		return

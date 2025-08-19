@@ -9,6 +9,27 @@ A Twitter-like REST API and backend created for "Learn HTTP Servers in Go" [boot
 - [sqlc](https://sqlc.dev/) used for compiling sql queries to type-safe Go code
 - [golang-jwt](https://github.com/golang-jwt/jwt) used for authentication
 
+## Functionality
+
+### Users
+
+- Create a new user: POST /api/users
+- Log in a user: POST /api/login
+- Update a user's email and password: PUT /api/users
+- Upgrade a user to a paid tier: POST /api/polka/webhooks
+
+### Authentication
+
+- Create a new access token: POST /api/refresh
+- Revoke a refresh token: POST /api/revoke
+
+### Chirps (Tweets)
+
+- Create a new chirp: POST /api/chirps
+- Get an existing chirp by ID: GET /api/chirps/{chirpID}
+- Get all chirps or all chirps by a specific user ID: GET /api/chirps
+- Delete a chirp: DELETE /api/chirps/{chirpID}
+
 ## Project Structure
 
 ### main.go

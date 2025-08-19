@@ -62,6 +62,7 @@ Authentication-related files, including:
 Comprises the "config" package.
 
 The endpoint handler functions are defined here, each function getting its own file.
+Note that all handler functions are defined as methods on the apiConfig struct defined in config.go.
 
 There are also some helper functions; e.g. "helper_authenticateUser.go".
 

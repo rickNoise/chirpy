@@ -20,6 +20,19 @@ SELECT
 FROM chirps
 ORDER BY created_at ASC;
 
+-- name: GetAllChirpsByAuthorUserId :many
+-- Retrieves all chirps with a user_id matching the provided author user_id; in ascending order by created_at.
+SELECT
+    id,
+    created_at,
+    updated_at,
+    body,
+    user_id
+FROM chirps
+WHERE
+    user_id = @user_id
+ORDER BY created_at ASC;
+
 -- name: GetChirp :one
 -- Retrieves a single chirp based on provided chirp id.
 SELECT

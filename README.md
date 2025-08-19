@@ -1,6 +1,6 @@
 # chirpy
 
-A Twitter-like API and backend created for "Learn HTTP Servers in Go" [boot.dev course](https://www.boot.dev/courses/learn-http-servers-golang).
+A Twitter-like REST API and backend created for "Learn HTTP Servers in Go" [boot.dev course](https://www.boot.dev/courses/learn-http-servers-golang).
 
 ## Tools
 
